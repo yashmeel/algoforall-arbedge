@@ -38,9 +38,9 @@ async def lifespan(app: FastAPI):
     if settings.redis_url:
         from services import cache
         cache.init_redis(settings.redis_url)
-    # Fetch once on startup — all subsequent refreshes are manual (click Refresh in UI)
-    await _refresh_odds()
-    logger.info("Odds loaded. Auto-refresh is OFF — use the Refresh button in the UI.")
+    # No auto-fetch on startup — fetch locally, commit latest_props.json, push to deploy fresh data.
+    # Credits are only spent when the user explicitly clicks Refresh / New Fetch in the UI.
+    logger.info("Ready. Serving from cache. Use the UI buttons to fetch fresh data.")
     yield
 
 
