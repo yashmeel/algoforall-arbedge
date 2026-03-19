@@ -34,8 +34,8 @@ from services.odds_fetcher import american_to_decimal, american_to_implied_prob
 logger = logging.getLogger(__name__)
 
 # Arb validity window
-MIN_PROFIT_PCT = 1.0    # discard anything below 1%
-MAX_PROFIT_PCT = 10.0   # discard anything above 10% (likely data error)
+MIN_PROFIT_PCT = 0.5    # discard anything below 0.5%
+MAX_PROFIT_PCT = 15.0   # discard anything above 15% (likely data error)
 
 # Sportsbook deep-link templates.
 # {event_id} and {player} are substituted where available.

@@ -73,7 +73,7 @@ async def _do_fetch(sport_key: str, max_events: int) -> None:
 
     # Run both fetches at the same time — Polymarket is free, no credits
     odds_api_task   = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
-    polymarket_task = fetch_polymarket_nba_props(min_liquidity=50.0)
+    polymarket_task = fetch_polymarket_nba_props(min_liquidity=0.0)
 
     (odds_rows, remaining), poly_rows = await asyncio.gather(
         odds_api_task,
