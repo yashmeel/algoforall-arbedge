@@ -64,12 +64,16 @@ async def _do_fetch(sport_key: str, max_events: int) -> None:
     Fetch props from The Odds API AND Polymarket concurrently.
     Merges both into a single flat list so the arb scanner can compare
     Polymarket prices against traditional sportsbook lines.
+
+    If The Odds API returns 0 rows (e.g. 401 out-of-credits), we reuse
+    the previous non-Polymarket rows from the disk cache so arbs between
+    traditional books and Polymarket still work.
     """
     global _cached_rows, _last_fetch, _last_remaining
 
     # Run both fetches at the same time — Polymarket is free, no credits
-    odds_api_task     = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
-    polymarket_task   = fetch_polymarket_nba_props(min_liquidity=300.0)
+    odds_api_task   = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
+    polymarket_task = fetch_polymarket_nba_props(min_liquidity=50.0)
 
     (odds_rows, remaining), poly_rows = await asyncio.gather(
         odds_api_task,
@@ -81,13 +85,29 @@ async def _do_fetch(sport_key: str, max_events: int) -> None:
         f"Polymarket: {len(poly_rows)} rows"
     )
 
-    # Merge: Odds API rows first, then Polymarket rows
+    # If Odds API failed (0 rows), rescue previous non-Polymarket rows from disk
+    if len(odds_rows) == 0 and PROPS_JSON_PATH.exists():
+        try:
+            with open(PROPS_JSON_PATH) as f:
+                saved = json.load(f)
+            # Keep only non-Polymarket rows from the saved file
+            rescued = [r for r in saved if r.get("bookmaker_key") != "polymarket"]
+            if rescued:
+                logger.info(
+                    f"Odds API returned 0 rows — rescued {len(rescued)} "
+                    f"non-Polymarket rows from previous cache"
+                )
+                odds_rows = rescued
+        except Exception as exc:
+            logger.warning(f"Could not rescue cache: {exc}")
+
+    # Merge: Odds API rows first, then fresh Polymarket rows
     all_rows = list(odds_rows) + list(poly_rows)
 
     if all_rows:
-        _cached_rows     = all_rows
-        _last_remaining  = remaining
-        _last_fetch      = datetime.now(timezone.utc)
+        _cached_rows    = all_rows
+        _last_remaining = remaining
+        _last_fetch     = datetime.now(timezone.utc)
         _save_rows_to_disk(all_rows)
 
 
