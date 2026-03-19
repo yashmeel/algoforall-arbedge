@@ -17,8 +17,6 @@ env/
 # Environment variables — NEVER commit the API key
 backend/.env
 
-# Runtime data
-backend/latest_props.json
 
 # macOS
 .DS_Store
