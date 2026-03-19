@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: algoforall-arbedge
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ODDS_API_KEY
+        sync: false          # set this manually in Render dashboard
+      - key: REDIS_URL
+        value: ""
+      - key: MIN_ARB_PROFIT
+        value: "0.5"
+      - key: ODDS_REFRESH_INTERVAL
+        value: "3600"

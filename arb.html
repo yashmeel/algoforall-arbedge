@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arb Scanner — AlgoForAll ArbEdge</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ---- Arb Page Specific Styles ---- */
+    .arb-page { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* Top bar */
+    .arb-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .arb-topbar h1 { font-size: 1.8rem; font-weight: 800; }
+    .arb-topbar h1 span { color: var(--green); }
+
+    .arb-controls {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .arb-controls select,
+    .arb-controls input[type="number"] {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .arb-controls select:hover,
+    .arb-controls input[type="number"]:hover { border-color: var(--border-hover); }
+    .arb-controls select:focus,
+    .arb-controls input[type="number"]:focus { border-color: var(--blue); }
+
+    /* Summary cards */
+    .arb-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .summary-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+    .summary-card .s-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+    .summary-card .s-val { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .summary-card .s-val.green { color: var(--green); }
+    .summary-card .s-val.blue { color: var(--blue); }
+    .summary-card .s-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    .status-dot.loading { background: var(--yellow); }
+    .status-dot.error { background: var(--red); animation: none; }
+
+    /* Arb cards */
+    .arb-list { display: flex; flex-direction: column; gap: 1rem; }
+
+    .arb-card {
+      background: var(--bg-2);
+      border: 1px solid rgba(0,200,83,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .arb-card:hover { border-color: rgba(0,200,83,0.4); transform: translateY(-1px); }
+
+    .arb-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .arb-game-info { flex: 1; min-width: 0; }
+    .arb-sport-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(66,165,245,0.12);
+      color: var(--blue);
+      border: 1px solid rgba(66,165,245,0.25);
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .arb-matchup { font-size: 1rem; font-weight: 700; }
+    .arb-market { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .arb-time { font-size: 0.75rem; color: var(--text-muted); }
+
+    .arb-profit-badge {
+      text-align: center;
+      background: rgba(0,200,83,0.12);
+      border: 1px solid rgba(0,200,83,0.3);
+      border-radius: 10px;
+      padding: 0.6rem 1.1rem;
+      min-width: 100px;
+    }
+    .arb-profit-pct { font-size: 1.5rem; font-weight: 800; color: var(--green); line-height: 1; }
+    .arb-profit-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* Legs */
+    .arb-legs { padding: 1rem 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .arb-leg {
+      flex: 1;
+      min-width: 220px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+    }
+    .leg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+    .leg-outcome { font-weight: 700; font-size: 0.9rem; }
+    .leg-book {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(255,107,53,0.12);
+      color: var(--orange);
+      border: 1px solid rgba(255,107,53,0.2);
+    }
+    .leg-odds { font-size: 1.3rem; font-weight: 800; color: var(--green); margin-bottom: 0.5rem; }
+    .leg-detail { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); }
+    .leg-detail span { display: flex; flex-direction: column; gap: 0.1rem; }
+    .leg-detail strong { color: var(--text); font-size: 0.84rem; }
+
+    /* Footer of card */
+    .arb-card-footer {
+      padding: 0.65rem 1.25rem;
+      background: rgba(0,200,83,0.04);
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .arb-card-footer strong { color: var(--green); }
+
+    /* Empty / loading / error states */
+    .state-box {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .state-box .state-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .state-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text); }
+    .state-box p { font-size: 0.88rem; max-width: 380px; margin: 0 auto; }
+
+    /* Calculator panel */
+    .calc-panel {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .calc-panel h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .calc-inputs { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1rem; }
+    .calc-field { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 100px; }
+    .calc-field label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    .calc-field input {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .calc-field input:focus { border-color: var(--blue); }
+    .calc-result {
+      background: var(--bg-3);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.88rem;
+      display: none;
+    }
+    .calc-result.visible { display: block; }
+    .calc-result .res-profit { font-size: 1.2rem; font-weight: 800; color: var(--green); margin-bottom: 0.5rem; }
+    .calc-result .res-profit.no-arb { color: var(--red); }
+    .calc-result table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .calc-result td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); }
+    .calc-result td:last-child { text-align: right; font-weight: 600; color: var(--text); }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+    }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ---- Tab switcher ---- */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .tab-btn {
+      padding: 0.7rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ---- Prop arb cards ---- */
+    .prop-controls {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 1.5rem;
+      padding: 1.1rem 1.25rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .prop-controls .ctrl-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 110px;
+    }
+    .prop-controls .ctrl-field label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .prop-controls select,
+    .prop-controls input[type="number"],
+    .prop-controls input[type="text"] {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .prop-controls select:focus,
+    .prop-controls input:focus { border-color: var(--blue); }
+    .prop-fetch-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      background: rgba(66,165,245,0.07);
+      border: 1px solid rgba(66,165,245,0.2);
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .prop-arb-card {
+      background: var(--bg-2);
+      border: 1px solid rgba(0,200,83,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+    .prop-arb-card:hover { border-color: rgba(0,200,83,0.4); }
+    .prop-arb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .prop-arb-player { font-size: 1.05rem; font-weight: 700; }
+    .prop-arb-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+    .prop-line-badge {
+      display: inline-block;
+      background: rgba(66,165,245,0.1);
+      color: var(--blue);
+      border: 1px solid rgba(66,165,245,0.25);
+      border-radius: 6px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-right: 0.4rem;
+    }
+    .prop-arb-legs {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.9rem 1.25rem;
+      flex-wrap: wrap;
+    }
+    .prop-leg {
+      flex: 1;
+      min-width: 220px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+    }
+    .prop-leg.over { border-left: 3px solid var(--green); }
+    .prop-leg.under { border-left: 3px solid var(--red, #ef5350); }
+    .prop-leg-side { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .prop-leg-side.over { color: var(--green); }
+    .prop-leg-side.under { color: #ef5350; }
+    .prop-leg-book { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.4rem; }
+    .prop-leg-odds { font-size: 1.25rem; font-weight: 800; color: var(--green); margin-bottom: 0.4rem; }
+    .prop-leg-detail { font-size: 0.78rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.15rem; }
+    .prop-leg-detail strong { color: var(--text); }
+    .prop-leg-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--blue);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .prop-leg-link:hover { text-decoration: underline; }
+    .prop-arb-footer {
+      padding: 0.6rem 1.25rem;
+      background: rgba(0,200,83,0.04);
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .prop-arb-footer .instruction {
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    /* ---- Book filter chips ---- */
+    .book-filter {
+      padding: 0.9rem 1.25rem 1rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+    }
+    .book-filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .book-filter-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .book-filter-quick {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .book-quick-btn {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg-3);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .book-quick-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .book-group { margin-bottom: 0.6rem; }
+    .book-group-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.4rem;
+    }
+    .book-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .book-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--bg-3);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .book-chip:hover { border-color: var(--blue); color: var(--text); }
+    .book-chip.active {
+      background: rgba(0,200,83,0.12);
+      border-color: rgba(0,200,83,0.4);
+      color: var(--green);
+    }
+    .book-chip.active::before { content: "✓ "; font-size: 0.65rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="9" fill="#00c853"/>
+          <path d="M11 25L18 11L25 25" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.5 20.5H22.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">AlgoForAll ArbEdge</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/arb" style="color: var(--text); background: var(--bg-3); border-radius:6px">Arb Scanner</a>
+        <a href="/docs" target="_blank" style="font-size:0.82rem;color:var(--text-muted)">API Docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="arb-page">
+    <!-- Title -->
+    <div class="arb-topbar">
+      <div>
+        <h1>Arb <span>Scanner</span></h1>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.25rem;">
+          Guaranteed-profit opportunities across 30+ sportsbooks
+        </p>
+      </div>
+      <!-- controls moved into tab panels below -->
+      <div class="arb-controls" id="gameArbControls">
+        <select id="sportFilter">
+          <option value="">All Sports</option>
+          <option value="americanfootball_nfl">NFL</option>
+          <option value="basketball_nba">NBA</option>
+          <option value="baseball_mlb">MLB</option>
+          <option value="icehockey_nhl">NHL</option>
+          <option value="americanfootball_ncaaf">CFB</option>
+          <option value="basketball_ncaab">CBB</option>
+          <option value="mma_mixed_martial_arts">MMA</option>
+          <option value="soccer_usa_mls">MLS</option>
+        </select>
+        <select id="marketFilter">
+          <option value="">All Markets</option>
+          <option value="h2h">Moneyline</option>
+          <option value="spreads">Spread</option>
+          <option value="totals">Total (O/U)</option>
+        </select>
+        <input
+          type="number"
+          id="minProfit"
+          placeholder="Min profit %"
+          min="0"
+          max="20"
+          step="0.1"
+          style="width: 120px"
+          value="0.5"
+        />
+        <button class="btn btn-green refresh-btn" id="refreshBtn" onclick="loadArbs(true)">
+          <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabGame"  onclick="switchTab('game')">🏈 Game Arbs</button>
+      <button class="tab-btn"        id="tabProps" onclick="switchTab('props')">🏀 Player Props Arb</button>
+    </div>
+
+    <!-- ═══════════════════ GAME ARB TAB ═══════════════════ -->
+    <div class="tab-panel active" id="panelGame">
+
+    <!-- Summary Cards -->
+    <div class="arb-summary" id="arbSummary">
+      <div class="summary-card">
+        <div class="s-label">Live Arbs</div>
+        <div class="s-val green" id="statTotal">—</div>
+        <div class="s-sub">opportunities found</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Best Profit</div>
+        <div class="s-val green" id="statBest">—</div>
+        <div class="s-sub">guaranteed return</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Sports Covered</div>
+        <div class="s-val blue" id="statSports">—</div>
+        <div class="s-sub">with active arbs</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">API Quota</div>
+        <div class="s-val" id="statQuota">—</div>
+        <div class="s-sub">requests remaining</div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connecting to odds feed...</span>
+    </div>
+
+    <!-- Quick Calculator Panel -->
+    <div class="calc-panel">
+      <h3>&#9881; Quick Arb Calculator</h3>
+      <p style="font-size:0.82rem; color: var(--text-muted); margin-bottom:1rem;">Enter American odds for each leg to see if an arb exists and calculate optimal stakes.</p>
+      <div class="calc-inputs">
+        <div class="calc-field">
+          <label>Leg 1 Odds (American)</label>
+          <input type="number" id="calc1" placeholder="+150" />
+        </div>
+        <div class="calc-field">
+          <label>Leg 2 Odds (American)</label>
+          <input type="number" id="calc2" placeholder="-130" />
+        </div>
+        <div class="calc-field" style="max-width:130px">
+          <label>Bankroll ($)</label>
+          <input type="number" id="calcBankroll" placeholder="1000" value="1000" />
+        </div>
+        <button class="btn btn-primary" onclick="runCalculator()">Calculate</button>
+      </div>
+      <div class="calc-result" id="calcResult"></div>
+    </div>
+
+    <!-- Arb Opportunities List -->
+    <div id="arbList" class="arb-list"></div>
+
+    </div><!-- /panelGame -->
+
+    <!-- ═══════════════════ PLAYER PROPS TAB ═══════════════════ -->
+    <div class="tab-panel" id="panelProps">
+
+      <div class="prop-fetch-note">
+        💾 <strong>Cache mode</strong> — <em>Scan Cached</em> re-uses the last fetched data (free, no credits).
+        Use <em>⚡ New Fetch</em> only when you need fresh odds — it costs API credits.
+      </div>
+
+      <!-- Props controls -->
+      <div class="prop-controls">
+        <div class="ctrl-field">
+          <label>Sport</label>
+          <select id="propSport">
+            <option value="basketball_nba">NBA Basketball</option>
+            <option value="americanfootball_nfl">NFL Football</option>
+            <option value="baseball_mlb">MLB Baseball</option>
+            <option value="icehockey_nhl">NHL Hockey</option>
+          </select>
+        </div>
+        <div class="ctrl-field" style="max-width:120px">
+          <label>Bankroll ($)</label>
+          <input type="number" id="propBankroll" value="100" min="10" step="10" />
+        </div>
+        <div class="ctrl-field" style="max-width:120px">
+          <label>Min Profit %</label>
+          <input type="number" id="propMinProfit" value="1.0" min="0" max="10" step="0.1" />
+        </div>
+        <div class="ctrl-field" style="max-width:120px">
+          <label>Max Events</label>
+          <input type="number" id="propMaxEvents" value="10" min="1" max="50" step="1" />
+        </div>
+        <div class="ctrl-field" style="max-width:160px">
+          <label>Player Filter</label>
+          <input type="text" id="propPlayerFilter" placeholder="e.g. LeBron" />
+        </div>
+        <button class="btn btn-green refresh-btn" onclick="rescanPropsFromCache()">
+          <svg id="propSpinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Scan Cached
+        </button>
+        <button class="btn refresh-btn" id="propFetchBtn" onclick="fetchAndScanProps()" style="font-size:0.8rem;background:var(--bg-3);border:1px solid var(--border);color:var(--text-muted)" title="Uses API credits">
+          ⚡ New Fetch
+        </button>
+      </div>
+
+      <!-- Book filter -->
+      <div class="book-filter">
+        <div class="book-filter-header">
+          <span class="book-filter-label">📚 Sportsbook Filter</span>
+          <div class="book-filter-quick">
+            <button class="book-quick-btn" onclick="selectBookGroup('us')">US Only</button>
+            <button class="book-quick-btn" onclick="selectBookGroup('offshore')">Offshore Only</button>
+            <button class="book-quick-btn" onclick="selectBookGroup('all')">All</button>
+            <button class="book-quick-btn" onclick="selectBookGroup('none')">None</button>
+          </div>
+        </div>
+        <div class="book-group">
+          <div class="book-group-label">🇺🇸 US State-Licensed</div>
+          <div class="book-chips-row" id="chipsUS">
+            <button class="book-chip active" data-book="draftkings"     onclick="toggleBook(this)">DraftKings</button>
+            <button class="book-chip active" data-book="fanduel"        onclick="toggleBook(this)">FanDuel</button>
+            <button class="book-chip active" data-book="betmgm"         onclick="toggleBook(this)">BetMGM</button>
+            <button class="book-chip active" data-book="williamhill_us" onclick="toggleBook(this)">Caesars</button>
+            <button class="book-chip active" data-book="espnbet"        onclick="toggleBook(this)">ESPN BET</button>
+            <button class="book-chip active" data-book="pointsbetus"    onclick="toggleBook(this)">PointsBet</button>
+            <button class="book-chip active" data-book="hardrockbet"    onclick="toggleBook(this)">Hard Rock</button>
+            <button class="book-chip active" data-book="superbook"      onclick="toggleBook(this)">SuperBook</button>
+            <button class="book-chip active" data-book="unibet_us"      onclick="toggleBook(this)">Unibet</button>
+            <button class="book-chip active" data-book="wynnbet"        onclick="toggleBook(this)">WynnBet</button>
+            <button class="book-chip active" data-book="ballybet"       onclick="toggleBook(this)">BallyBet</button>
+            <button class="book-chip active" data-book="tipico_us"      onclick="toggleBook(this)">Tipico</button>
+            <button class="book-chip active" data-book="fliff"          onclick="toggleBook(this)">Fliff</button>
+          </div>
+        </div>
+        <div class="book-group" style="margin-bottom:0">
+          <div class="book-group-label">🌊 Offshore (accepts US)</div>
+          <div class="book-chips-row" id="chipsOffshore">
+            <button class="book-chip" data-book="betonlineag" onclick="toggleBook(this)">BetOnline</button>
+            <button class="book-chip" data-book="mybookieag"  onclick="toggleBook(this)">MyBookie</button>
+            <button class="book-chip" data-book="bovada_us"   onclick="toggleBook(this)">Bovada</button>
+            <button class="book-chip" data-book="betus"       onclick="toggleBook(this)">BetUS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Props summary -->
+      <div class="arb-summary" id="propsSummary" style="display:none">
+        <div class="summary-card">
+          <div class="s-label">Prop Arbs Found</div>
+          <div class="s-val green" id="pStatTotal">0</div>
+          <div class="s-sub">player prop opportunities</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Best Profit</div>
+          <div class="s-val green" id="pStatBest">—</div>
+          <div class="s-sub">guaranteed return</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">Rows Scanned</div>
+          <div class="s-val blue" id="pStatRows">—</div>
+          <div class="s-sub">prop entries across all books</div>
+        </div>
+        <div class="summary-card">
+          <div class="s-label">API Credits Left</div>
+          <div class="s-val" id="pStatQuota">—</div>
+          <div class="s-sub">requests remaining</div>
+        </div>
+      </div>
+
+      <!-- Props status -->
+      <div class="status-bar" id="propsStatus" style="display:none">
+        <div class="status-dot" id="propsStatusDot"></div>
+        <span id="propsStatusText"></span>
+      </div>
+
+      <!-- Props list -->
+      <div id="propsList"></div>
+    </div><!-- /panelProps -->
+
+  </main>
+
+  <script>
+    const API_BASE = "/api";
+    let lastData = null;
+
+    // ---- Load Arbs ----
+    async function loadArbs(forceRefresh = false) {
+      setStatus("loading", "Fetching latest odds...");
+      setRefreshSpinner(true);
+
+      const sport = document.getElementById("sportFilter").value;
+      const market = document.getElementById("marketFilter").value;
+      const minProfit = document.getElementById("minProfit").value || "0.5";
+
+      let url = `${API_BASE}/arb?min_profit=${minProfit}`;
+      if (sport) url += `&sport=${sport}`;
+      if (market) url += `&market=${market}`;
+      if (forceRefresh) url += `&refresh=true`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        lastData = data;
+        renderArbs(data);
+        updateSummary(data);
+        setStatus("ok", `Last updated: ${formatTime(data.fetched_at)} · ${data.total_opportunities} opportunities`);
+      } catch (err) {
+        setStatus("error", `Error: ${err.message} — Is the backend running? (python3 main.py)`);
+        renderError(err.message);
+      } finally {
+        setRefreshSpinner(false);
+      }
+    }
+
+    // ---- Render arb cards ----
+    function renderArbs(data) {
+      const list = document.getElementById("arbList");
+      if (!data.opportunities || data.opportunities.length === 0) {
+        list.innerHTML = `
+          <div class="state-box">
+            <div class="state-icon">🔍</div>
+            <h3>No arbitrage opportunities found</h3>
+            <p>Try lowering the minimum profit threshold or check back in a few seconds as odds move frequently.</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = data.opportunities.map(opp => buildArbCard(opp)).join("");
+    }
+
+    function buildArbCard(opp) {
+      const gameTime = new Date(opp.commence_time);
+      const timeStr = gameTime.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      const sportLabel = formatSportKey(opp.sport_key);
+
+      const legsHtml = opp.legs.map(leg => `
+        <div class="arb-leg">
+          <div class="leg-header">
+            <div class="leg-outcome">${leg.outcome}</div>
+            <div class="leg-book">${leg.bookmaker}</div>
+          </div>
+          <div class="leg-odds">${formatAmericanOdds(leg.price)}</div>
+          <div class="leg-detail">
+            <span>Stake<strong>$${leg.stake_amount}</strong></span>
+            <span>Payout<strong>$${leg.payout.toFixed(2)}</strong></span>
+            <span>Implied<strong>${(leg.implied_prob * 100).toFixed(1)}%</strong></span>
+          </div>
+        </div>
+      `).join("");
+
+      const totalStake = opp.legs.reduce((s, l) => s + l.stake_amount, 0);
+      const guaranteedProfit = opp.legs[0].payout - totalStake;
+
+      return `
+        <div class="arb-card">
+          <div class="arb-card-header">
+            <div class="arb-game-info">
+              <div class="arb-sport-badge">${sportLabel} · ${opp.market_label}</div>
+              <div class="arb-matchup">${opp.home_team} vs ${opp.away_team}</div>
+              <div class="arb-time">&#128337; ${timeStr}</div>
+            </div>
+            <div class="arb-profit-badge">
+              <div class="arb-profit-pct">+${opp.profit_pct.toFixed(2)}%</div>
+              <div class="arb-profit-label">Guaranteed profit</div>
+            </div>
+          </div>
+          <div class="arb-legs">${legsHtml}</div>
+          <div class="arb-card-footer">
+            <span>Total implied prob: <strong>${(opp.total_implied_prob * 100).toFixed(2)}%</strong> (arb when &lt; 100%)</span>
+            <span>On $100 stake → <strong>+$${((opp.profit_pct / 100) * 100).toFixed(2)} guaranteed</strong></span>
+          </div>
+        </div>`;
+    }
+
+    // ---- Calculator ----
+    async function runCalculator() {
+      const p1 = parseInt(document.getElementById("calc1").value);
+      const p2 = parseInt(document.getElementById("calc2").value);
+      const bankroll = parseFloat(document.getElementById("calcBankroll").value) || 100;
+
+      if (!p1 || !p2) { alert("Enter odds for both legs."); return; }
+
+      const resultEl = document.getElementById("calcResult");
+      resultEl.classList.add("visible");
+      resultEl.innerHTML = "Calculating...";
+
+      try {
+        const res = await fetch(`${API_BASE}/arb/calculate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prices: [p1, p2], bankroll }),
+        });
+        const data = await res.json();
+
+        if (!data.is_arb) {
+          resultEl.innerHTML = `
+            <div class="res-profit no-arb">No arbitrage — total implied prob: ${(data.total_implied_prob * 100).toFixed(2)}%</div>
+            <p style="font-size:0.82rem; color:var(--text-muted)">Total implied probability must be below 100% for an arb to exist.</p>`;
+        } else {
+          const rows = data.legs.map((leg, i) =>
+            `<tr><td>Leg ${i + 1} (${leg.price > 0 ? "+" : ""}${leg.price})</td><td>Stake</td><td>$${leg.stake}</td></tr>
+             <tr><td></td><td>Payout</td><td>$${leg.payout}</td></tr>`
+          ).join("");
+          resultEl.innerHTML = `
+            <div class="res-profit">✅ ARB EXISTS — +${data.profit_pct.toFixed(3)}% guaranteed profit</div>
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.75rem">
+              On $${bankroll} total stake, guaranteed profit: <strong style="color:var(--green)">$${data.guaranteed_profit}</strong>
+              (total implied: ${(data.total_implied_prob * 100).toFixed(2)}%)
+            </p>
+            <table>${rows}</table>`;
+        }
+      } catch (err) {
+        resultEl.innerHTML = `<div class="res-profit no-arb">Error: ${err.message}</div>`;
+      }
+    }
+
+    // ---- Helpers ----
+    function updateSummary(data) {
+      document.getElementById("statTotal").textContent = data.total_opportunities;
+      document.getElementById("statBest").textContent = data.total_opportunities > 0
+        ? `+${data.max_profit_pct.toFixed(2)}%`
+        : "—";
+      document.getElementById("statSports").textContent = data.sports_covered.length;
+      document.getElementById("statQuota").textContent =
+        data.api_requests_remaining !== null ? data.api_requests_remaining : "N/A";
+    }
+
+    function setStatus(state, text) {
+      const dot = document.getElementById("statusDot");
+      dot.className = "status-dot" + (state === "loading" ? " loading" : state === "error" ? " error" : "");
+      document.getElementById("statusText").textContent = text;
+    }
+
+    function setRefreshSpinner(on) {
+      const icon = document.getElementById("refreshIcon");
+      if (on) icon.classList.add("spin"); else icon.classList.remove("spin");
+    }
+
+    function renderError(msg) {
+      document.getElementById("arbList").innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">⚠️</div>
+          <h3>Could not connect to backend</h3>
+          <p>Make sure the FastAPI server is running:<br><code style="background:var(--bg-3);padding:0.2rem 0.5rem;border-radius:4px">cd backend && python3 main.py</code></p>
+        </div>`;
+    }
+
+    function formatAmericanOdds(price) {
+      return price > 0 ? `+${price}` : `${price}`;
+    }
+
+    function formatTime(isoStr) {
+      return new Date(isoStr).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function formatSportKey(key) {
+      const map = {
+        "americanfootball_nfl": "NFL",
+        "americanfootball_ncaaf": "CFB",
+        "basketball_nba": "NBA",
+        "basketball_ncaab": "CBB",
+        "baseball_mlb": "MLB",
+        "icehockey_nhl": "NHL",
+        "soccer_usa_mls": "MLS",
+        "mma_mixed_martial_arts": "MMA",
+        "golf_pga_tour": "PGA",
+      };
+      return map[key] || key;
+    }
+
+    // ---- Tab switcher ----
+    function switchTab(name) {
+      document.getElementById("panelGame").classList.toggle("active", name === "game");
+      document.getElementById("panelProps").classList.toggle("active", name === "props");
+      document.getElementById("tabGame").classList.toggle("active", name === "game");
+      document.getElementById("tabProps").classList.toggle("active", name === "props");
+      document.getElementById("gameArbControls").style.display = name === "game" ? "" : "none";
+    }
+
+    // ---- Book filter helpers ----
+    function toggleBook(chip) {
+      chip.classList.toggle("active");
+    }
+
+    function selectBookGroup(group) {
+      const usChips       = document.querySelectorAll("#chipsUS .book-chip");
+      const offshoreChips = document.querySelectorAll("#chipsOffshore .book-chip");
+      if (group === "us") {
+        usChips.forEach(c => c.classList.add("active"));
+        offshoreChips.forEach(c => c.classList.remove("active"));
+      } else if (group === "offshore") {
+        usChips.forEach(c => c.classList.remove("active"));
+        offshoreChips.forEach(c => c.classList.add("active"));
+      } else if (group === "all") {
+        document.querySelectorAll(".book-chip").forEach(c => c.classList.add("active"));
+      } else if (group === "none") {
+        document.querySelectorAll(".book-chip").forEach(c => c.classList.remove("active"));
+      }
+    }
+
+    function getSelectedBooks() {
+      const active = [...document.querySelectorAll(".book-chip.active")].map(c => c.dataset.book);
+      // If all chips are active (or none are selected), send no filter (backend uses all)
+      const total = document.querySelectorAll(".book-chip").length;
+      if (active.length === 0 || active.length === total) return null;
+      return active.join(",");
+    }
+
+    // ---- Player Props: fetch + scan ----
+    async function fetchAndScanProps() {
+      const sport     = document.getElementById("propSport").value;
+      const bankroll  = parseFloat(document.getElementById("propBankroll").value) || 100;
+      const minProfit = parseFloat(document.getElementById("propMinProfit").value) || 1.0;
+      const maxEvents = parseInt(document.getElementById("propMaxEvents").value) || 10;
+      const player    = document.getElementById("propPlayerFilter").value.trim();
+
+      setPropStatus("loading", "Fetching player props from The Odds API...");
+      setPropSpinner(true);
+      document.getElementById("propsSummary").style.display = "none";
+      document.getElementById("propsList").innerHTML = "";
+
+      try {
+        // Step 1: Trigger on-demand fetch (POST)
+        const fetchRes = await fetch(`${API_BASE}/props/fetch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sport_key: sport, max_events: maxEvents }),
+        });
+        if (!fetchRes.ok) {
+          const err = await fetchRes.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${fetchRes.status}`);
+        }
+        const fetchData = await fetchRes.json();
+
+        if (fetchData.status === "no_data") {
+          setPropStatus("error", fetchData.message);
+          renderPropsEmpty("No data returned from The Odds API. Check your ODDS_API_KEY in backend/.env.");
+          return;
+        }
+
+        setPropStatus("loading", `Fetched ${fetchData.rows_fetched} prop entries. Scanning for arbs...`);
+
+        // Step 2: Scan the cached rows
+        let scanUrl = `${API_BASE}/props/arb?bankroll=${bankroll}&min_profit=${minProfit}`;
+        if (player) scanUrl += `&player=${encodeURIComponent(player)}`;
+        const books = getSelectedBooks();
+        if (books) scanUrl += `&books=${encodeURIComponent(books)}`;
+
+        const scanRes = await fetch(scanUrl);
+        if (!scanRes.ok) throw new Error(`Scan failed: HTTP ${scanRes.status}`);
+        const scanData = await scanRes.json();
+
+        renderProps(scanData, bankroll);
+        updatePropsSummary(scanData);
+        setPropStatus("ok",
+          `Last fetch: ${fetchData.fetched_at ? formatTime(fetchData.fetched_at) : "just now"} · ` +
+          `${scanData.total_found} arbs found from ${scanData.rows_scanned} rows`
+        );
+      } catch (err) {
+        setPropStatus("error", `Error: ${err.message}`);
+        renderPropsEmpty(`Could not fetch props: ${err.message}`);
+      } finally {
+        setPropSpinner(false);
+      }
+    }
+
+    // Re-scan from cached data without re-fetching (no API credit cost)
+    async function rescanPropsFromCache() {
+      const bankroll  = parseFloat(document.getElementById("propBankroll").value) || 100;
+      const minProfit = parseFloat(document.getElementById("propMinProfit").value) || 1.0;
+      const player    = document.getElementById("propPlayerFilter").value.trim();
+
+      setPropStatus("loading", "Re-scanning cached props...");
+      setPropSpinner(true);
+
+      try {
+        let rescanUrl = `${API_BASE}/props/arb/latest?bankroll=${bankroll}&min_profit=${minProfit}`;
+        const books = getSelectedBooks();
+        if (books) rescanUrl += `&books=${encodeURIComponent(books)}`;
+        const res = await fetch(rescanUrl);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+
+        if (data.status === "empty") {
+          renderPropsEmpty("latest_props.json is empty. Run Fetch & Scan first.");
+          return;
+        }
+
+        // Apply client-side player filter
+        if (player) {
+          const lc = player.toLowerCase();
+          data.opportunities = (data.opportunities || []).filter(o => o.player.toLowerCase().includes(lc));
+          data.total_found = data.opportunities.length;
+        }
+
+        renderProps(data, bankroll);
+        updatePropsSummary(data);
+        setPropStatus("ok", `Re-scan complete: ${data.total_found} arbs from ${data.rows_scanned} rows`);
+      } catch (err) {
+        setPropStatus("error", `Error: ${err.message}`);
+        renderPropsEmpty(`Could not re-scan: ${err.message}`);
+      } finally {
+        setPropSpinner(false);
+      }
+    }
+
+    // ---- Props rendering ----
+    function renderProps(data, bankroll) {
+      const list = document.getElementById("propsList");
+      document.getElementById("propsStatus").style.display = "flex";
+      document.getElementById("propsSummary").style.display = "grid";
+
+      if (!data.opportunities || data.opportunities.length === 0) {
+        renderPropsEmpty(
+          "No player prop arbs found at this time. " +
+          "This typically means only 1 sportsbook has lines loaded for these events. " +
+          "Arbs require at least 2 different books. Try again when more books have priced the props."
+        );
+        return;
+      }
+
+      list.innerHTML = data.opportunities.map((arb, i) => buildPropCard(arb, i + 1)).join("");
+    }
+
+    function buildPropCard(arb, idx) {
+      const ol = arb.over_leg;
+      const ul = arb.under_leg;
+      const gameTime = arb.commence_time ? new Date(arb.commence_time).toLocaleString("en-US",
+        { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+
+      const profitColour = arb.profit_pct >= 4 ? "var(--green)" : arb.profit_pct >= 2 ? "var(--yellow, #ffb300)" : "var(--green)";
+
+      return `
+        <div class="prop-arb-card">
+          <div class="prop-arb-header">
+            <div>
+              <div class="prop-arb-player">${idx}. ${arb.player}</div>
+              <div class="prop-arb-meta">
+                <span class="prop-line-badge">${arb.prop_label} O/U ${arb.line}</span>
+                ${arb.away_team} @ ${arb.home_team} &nbsp;·&nbsp; ${gameTime}
+              </div>
+            </div>
+            <div class="arb-profit-badge">
+              <div class="arb-profit-pct" style="color:${profitColour}">+${arb.profit_pct.toFixed(2)}%</div>
+              <div class="arb-profit-label">Guaranteed profit</div>
+            </div>
+          </div>
+          <div class="prop-arb-legs">
+            <div class="prop-leg over">
+              <div class="prop-leg-side over">▲ Over ${arb.line}</div>
+              <div class="prop-leg-book">${ol.bookmaker}</div>
+              <div class="prop-leg-odds">${ol.price > 0 ? "+" : ""}${ol.price}</div>
+              <div class="prop-leg-detail">
+                <div>Implied: <strong>${(ol.implied_prob * 100).toFixed(1)}%</strong></div>
+                <div>Stake: <strong>$${ol.stake_rounded} <span style="opacity:0.5">(exact $${ol.stake_amount})</span></strong></div>
+                <div>Payout if wins: <strong>$${ol.payout}</strong></div>
+              </div>
+              <a class="prop-leg-link" href="${ol.deep_link}" target="_blank" rel="noopener">🔗 Open ${ol.bookmaker} →</a>
+            </div>
+            <div class="prop-leg under">
+              <div class="prop-leg-side under">▼ Under ${arb.line}</div>
+              <div class="prop-leg-book">${ul.bookmaker}</div>
+              <div class="prop-leg-odds">${ul.price > 0 ? "+" : ""}${ul.price}</div>
+              <div class="prop-leg-detail">
+                <div>Implied: <strong>${(ul.implied_prob * 100).toFixed(1)}%</strong></div>
+                <div>Stake: <strong>$${ul.stake_rounded} <span style="opacity:0.5">(exact $${ul.stake_amount})</span></strong></div>
+                <div>Payout if wins: <strong>$${ul.payout}</strong></div>
+              </div>
+              <a class="prop-leg-link" href="${ul.deep_link}" target="_blank" rel="noopener">🔗 Open ${ul.bookmaker} →</a>
+            </div>
+          </div>
+          <div class="prop-arb-footer">
+            <span>Total implied: <strong>${(arb.total_implied * 100).toFixed(3)}%</strong> (arb when &lt; 100%)</span>
+            <span class="instruction">→ Bet $${ol.stake_rounded} on ${ol.bookmaker} (Over) + $${ul.stake_rounded} on ${ul.bookmaker} (Under)</span>
+          </div>
+        </div>`;
+    }
+
+    function renderPropsEmpty(msg) {
+      document.getElementById("propsList").innerHTML = `
+        <div class="state-box">
+          <div class="state-icon">🔍</div>
+          <h3>No player prop arbs found</h3>
+          <p>${msg}</p>
+        </div>`;
+    }
+
+    function updatePropsSummary(data) {
+      document.getElementById("pStatTotal").textContent = data.total_found || 0;
+      const best = data.opportunities && data.opportunities.length > 0
+        ? Math.max(...data.opportunities.map(o => o.profit_pct)) : null;
+      document.getElementById("pStatBest").textContent = best !== null ? `+${best.toFixed(2)}%` : "—";
+      document.getElementById("pStatRows").textContent = data.rows_scanned || "—";
+      document.getElementById("pStatQuota").textContent =
+        data.api_requests_remaining != null ? data.api_requests_remaining : "—";
+    }
+
+    function setPropStatus(state, text) {
+      const el = document.getElementById("propsStatus");
+      el.style.display = "flex";
+      const dot = document.getElementById("propsStatusDot");
+      dot.className = "status-dot" + (state === "loading" ? " loading" : state === "error" ? " error" : "");
+      document.getElementById("propsStatusText").textContent = text;
+    }
+
+    function setPropSpinner(on) {
+      document.getElementById("propSpinner").classList.toggle("spin", on);
+      document.getElementById("propFetchBtn").disabled = on;
+    }
+
+    // ---- Auto-refresh & event listeners ----
+    document.getElementById("sportFilter").addEventListener("change", () => loadArbs());
+    document.getElementById("marketFilter").addEventListener("change", () => loadArbs());
+    document.getElementById("minProfit").addEventListener("change", () => loadArbs());
+
+    // Add Enter key support for calculator
+    ["calc1","calc2","calcBankroll"].forEach(id => {
+      document.getElementById(id).addEventListener("keydown", e => {
+        if (e.key === "Enter") runCalculator();
+      });
+    });
+
+    // Initial load
+    loadArbs();
+  </script>
+</body>
+</html>

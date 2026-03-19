@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlgoForAll ArbEdge — Real-Time Sports Betting Arbitrage</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Index-page extras ── */
+    .hero { gap: 5rem; padding: 6rem 1.5rem 5rem; }
+    .hero-title { font-size: clamp(2.6rem, 6vw, 4.2rem); }
+    .hero-title em { color: var(--green); font-style: normal; }
+
+    /* How it works */
+    .how-section {
+      padding: 5rem 1.5rem;
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .how-inner { max-width: 1000px; margin: 0 auto; text-align: center; }
+    .how-inner .section-sub { margin: 0 auto 3rem; }
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      text-align: left;
+    }
+    .how-step {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .how-step:hover { border-color: var(--border-hover); }
+    .step-num {
+      width: 36px; height: 36px;
+      background: rgba(0,200,83,0.12);
+      border: 1px solid rgba(0,200,83,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: var(--green);
+      margin-bottom: 1rem;
+    }
+    .how-step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .how-step p { font-size: 0.84rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* Live arb example */
+    .example-section {
+      padding: 5rem 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .example-inner { text-align: center; }
+    .example-inner .section-sub { margin: 0 auto 2.5rem; }
+    .example-card {
+      background: var(--bg-2);
+      border: 1px solid rgba(0,200,83,0.3);
+      border-radius: 14px;
+      overflow: hidden;
+      text-align: left;
+      box-shadow: 0 0 40px rgba(0,200,83,0.06);
+    }
+    .example-header {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .example-player { font-size: 1.1rem; font-weight: 700; }
+    .example-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; }
+    .example-profit {
+      background: rgba(0,200,83,0.12);
+      border: 1px solid rgba(0,200,83,0.3);
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      text-align: center;
+    }
+    .example-pct { font-size: 1.4rem; font-weight: 800; color: var(--green); line-height: 1; }
+    .example-pct-label { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.15rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .example-legs { display: flex; gap: 1rem; padding: 1.25rem 1.5rem; flex-wrap: wrap; }
+    .example-leg {
+      flex: 1;
+      min-width: 200px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+    }
+    .example-leg.over { border-left: 3px solid var(--green); }
+    .example-leg.under { border-left: 3px solid #ef5350; }
+    .example-leg-side { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .example-leg-side.over { color: var(--green); }
+    .example-leg-side.under { color: #ef5350; }
+    .example-leg-book { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .example-leg-odds { font-size: 1.2rem; font-weight: 800; color: var(--green); margin-bottom: 0.2rem; }
+    .example-leg-detail { font-size: 0.78rem; color: var(--text-muted); }
+    .example-footer {
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background: rgba(0,200,83,0.03);
+      font-size: 0.82rem;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    /* Features */
+    .features-section { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .features-inner { text-align: center; }
+    .features-inner .section-sub { margin: 0 auto 2.5rem; }
+    .feature-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 0; }
+
+    /* Sports */
+    .sports-section { background: var(--bg-2); }
+    .sports-inner .section-title { font-size: 1.5rem; }
+
+    /* CTA */
+    .cta-section { padding: 5rem 1.5rem; }
+    .cta-inner h2 { font-size: 2rem; }
+
+    /* Footer — slim version */
+    .footer-top { grid-template-columns: 1fr 1fr 1fr; }
+    .footer-brand { grid-column: 1 / -1; }
+
+    @media (max-width: 900px) {
+      .hero { flex-direction: column; padding: 3.5rem 1.5rem 4rem; }
+      .hero-mockup { width: 100%; }
+      .mockup-float-card { right: 0; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .footer-top { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="9" fill="#00c853"/>
+          <path d="M11 25 L18 11 L25 25" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.5 20.5 H22.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">AlgoForAll ArbEdge</span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="/arb">Arb Finder</a>
+        <a href="/arb">Player Props</a>
+        <a href="/docs" target="_blank">API Docs</a>
+        <a href="/arb" class="nav-cta" style="background:var(--green);color:#000;font-weight:700">Open App →</a>
+      </nav>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
+    <nav>
+      <a href="/arb">Arb Finder</a>
+      <a href="/arb">Player Props</a>
+      <a href="/docs" target="_blank">API Docs</a>
+      <a href="/arb" class="nav-cta" style="background:var(--green);color:#000;font-weight:700;text-align:center">Open App →</a>
+    </nav>
+  </div>
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Live multi-book data · Real arbitrage only
+      </div>
+      <h1 class="hero-title">
+        Find <em>Guaranteed Profit</em><br />
+        on Player Props
+      </h1>
+      <p class="hero-sub">
+        AlgoForAll ArbEdge scans 30+ sportsbooks in real time, finds mispricings across books,
+        and tells you exactly how much to bet on each side for a guaranteed return.
+      </p>
+      <div class="hero-cta-group">
+        <a href="/arb" class="btn btn-green large">Scan for Arbs Now →</a>
+        <a href="#how" class="btn btn-outline">How it works</a>
+      </div>
+      <p class="hero-disclaimer">No subscription required to try · Powered by The Odds API</p>
+    </div>
+
+    <div class="hero-mockup">
+      <div class="mockup-screen mockup-main">
+        <div class="mockup-header">
+          <span class="mockup-dot red"></span>
+          <span class="mockup-dot yellow"></span>
+          <span class="mockup-dot green"></span>
+          <span class="mockup-title-bar">AlgoForAll ArbEdge — Player Props Scanner</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-tabs">
+            <span class="mtab active">NBA</span>
+            <span class="mtab">NFL</span>
+            <span class="mtab">MLB</span>
+            <span class="mtab">NHL</span>
+          </div>
+          <div class="mockup-table">
+            <div class="mockup-row header-row">
+              <span>Player · Prop</span>
+              <span>Over Book</span>
+              <span>Under Book</span>
+              <span>Profit</span>
+            </div>
+            <div class="mockup-row ev-positive" style="grid-template-columns: 2.5fr 1fr 1fr 0.7fr">
+              <span>J. Harden · Reb O/U 4.5</span>
+              <span>Bovada +105</span>
+              <span>BetMGM +120</span>
+              <span class="ev-badge green">+6.1%</span>
+            </div>
+            <div class="mockup-row" style="grid-template-columns: 2.5fr 1fr 1fr 0.7fr">
+              <span>C. LeVert · Pts O/U 7.5</span>
+              <span>BetRivers +117</span>
+              <span>BetOnline +103</span>
+              <span class="ev-badge green">+4.9%</span>
+            </div>
+            <div class="mockup-row ev-positive" style="grid-template-columns: 2.5fr 1fr 1fr 0.7fr">
+              <span>P. Banchero · PRA O/U 36.5</span>
+              <span>BetRivers +120</span>
+              <span>DraftKings -106</span>
+              <span class="ev-badge green">+3.2%</span>
+            </div>
+            <div class="mockup-row" style="grid-template-columns: 2.5fr 1fr 1fr 0.7fr">
+              <span>D. Mitchell · Pts O/U 25.5</span>
+              <span>BetOnline -103</span>
+              <span>BetRivers +112</span>
+              <span class="ev-badge green">+2.1%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-float-card">
+        <div class="float-label">Arbs Found</div>
+        <div class="float-value">14</div>
+        <div class="float-sub">right now · NBA</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats bar -->
+  <section class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <span class="stat-num">30+</span>
+        <span class="stat-label">Sportsbooks scanned</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">17</span>
+        <span class="stat-label">Prop market types</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">1–10%</span>
+        <span class="stat-label">Real arb profit range</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">$5</span>
+        <span class="stat-label">Rounded stakes, always</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-section" id="how">
+    <div class="how-inner">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">Three steps to a guaranteed profit</h2>
+      <p class="section-sub">AlgoForAll ArbEdge does the math — you just place the bets.</p>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="step-num">1</div>
+          <h3>Choose a sport & fetch</h3>
+          <p>Click "Fetch &amp; Scan" in the Player Props tab. Live odds are pulled from 30+ books via The Odds API on demand — no wasted API credits.</p>
+        </div>
+        <div class="how-step">
+          <div class="step-num">2</div>
+          <h3>AlgoForAll ArbEdge scans 1,000+ rows</h3>
+          <p>Our engine groups every player prop across all books, finds Over/Under pairs where the combined implied probability falls below 100%, and filters out noise (&lt;1% and &gt;10% profits).</p>
+        </div>
+        <div class="how-step">
+          <div class="step-num">3</div>
+          <h3>Bet both sides, lock profit</h3>
+          <p>Each card shows exact stake amounts (rounded to $5), the guaranteed payout, and a direct link to each sportsbook. Place both bets before the line moves.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live example card -->
+  <section class="example-section">
+    <div class="example-inner">
+      <div class="section-label">Example</div>
+      <h2 class="section-title">What a real arb looks like</h2>
+      <p class="section-sub">This is an actual opportunity found today. Both bets placed = guaranteed profit regardless of the outcome.</p>
+    </div>
+    <div class="example-card">
+      <div class="example-header">
+        <div>
+          <div class="example-player">James Harden</div>
+          <div class="example-meta">Rebounds O/U 4.5 &nbsp;·&nbsp; Hornets @ Magic &nbsp;·&nbsp; Tonight 7:30 PM</div>
+        </div>
+        <div class="example-profit">
+          <div class="example-pct">+6.12%</div>
+          <div class="example-pct-label">Guaranteed profit</div>
+        </div>
+      </div>
+      <div class="example-legs">
+        <div class="example-leg over">
+          <div class="example-leg-side over">▲ Over 4.5 Rebounds</div>
+          <div class="example-leg-book">Bovada</div>
+          <div class="example-leg-odds">+105</div>
+          <div class="example-leg-detail">Stake $50 &nbsp;·&nbsp; Payout $102.50</div>
+        </div>
+        <div class="example-leg under">
+          <div class="example-leg-side under">▼ Under 4.5 Rebounds</div>
+          <div class="example-leg-book">BetMGM</div>
+          <div class="example-leg-odds">+120</div>
+          <div class="example-leg-detail">Stake $50 &nbsp;·&nbsp; Payout $110.00</div>
+        </div>
+      </div>
+      <div class="example-footer">
+        → Bet $50 on Bovada (Over) + $50 on BetMGM (Under) = $6.12 guaranteed profit on $100
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div class="features-inner">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Built for real arb hunters</h2>
+      <p class="section-sub">Everything you need to find and execute prop arbitrage — nothing you don't.</p>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#00c853" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>On-Demand Fetching</h3>
+          <p>Data only fetches when you click — never auto-polls. Preserves your 500 free API credits per month so you control every request.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9.5 14.5L3 21M15 3l6 6-9.5 9.5-3-3L15 3z" stroke="#42a5f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>RapidFuzz Name Matching</h3>
+          <p>"LeBron James" = "L. James" = "lebron james". Our fuzzy matcher groups player names across books so no arb gets missed due to formatting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon cyan">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#37c6f0" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke="#37c6f0" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>17 Prop Market Types</h3>
+          <p>Points, rebounds, assists, 3-pointers, steals, blocks, PRA combos, pitcher strikeouts, batting stats, passing/rushing/receiving yards, and more.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="#ff6b35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>$5-Rounded Stakes</h3>
+          <p>Optimal stake calculation split across both legs, then rounded to the nearest $5 for clean execution. Exact amounts also shown.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Direct Sportsbook Links</h3>
+          <p>Each leg includes a deep link straight to the relevant sportsbook. Open both, place both — no searching required.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon teal">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Smart Filters</h3>
+          <p>Arbs below 1% are discarded as not worth execution risk. Arbs above 10% are flagged as likely data errors. Only real 1–10% opportunities shown.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sports -->
+  <section class="sports-section">
+    <div class="sports-inner">
+      <div class="section-label">Coverage</div>
+      <h2 class="section-title">4 Sports. Real Lines.</h2>
+      <div class="sports-grid" style="margin-top:1.5rem">
+        <div class="sport-chip">🏀 NBA — Points, Reb, Ast, 3PM</div>
+        <div class="sport-chip">🏈 NFL — Pass Yds, Rush Yds, TDs</div>
+        <div class="sport-chip">⚾ MLB — Hits, HRs, Strikeouts, RBI</div>
+        <div class="sport-chip">🏒 NHL — Goals, Assists, Saves</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <h2>Ready to find your first arb?</h2>
+      <p>Open the scanner, enter your bankroll, hit Fetch &amp; Scan. Takes 10 seconds.</p>
+      <a href="/arb" class="btn btn-green large">Open Arb Scanner →</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top" style="grid-template-columns: 2fr 1fr 1fr; gap: 2rem;">
+        <div class="footer-brand">
+          <a href="/" class="logo footer-logo">
+            <svg width="26" height="26" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="9" fill="#00c853"/><path d="M11 25L18 11L25 25" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 20.5H22.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <span class="logo-text">AlgoForAll ArbEdge</span>
+          </a>
+          <p>Real-time player prop arbitrage scanner. Find guaranteed profits across 30+ sportsbooks.</p>
+        </div>
+        <div class="footer-links-group">
+          <h4>Tools</h4>
+          <a href="/arb">Game Arb Finder</a>
+          <a href="/arb">Player Props Arb</a>
+          <a href="/arb#calculator">Arb Calculator</a>
+          <a href="/docs" target="_blank">API Docs</a>
+        </div>
+        <div class="footer-links-group">
+          <h4>Sports</h4>
+          <a href="/arb">NBA Props</a>
+          <a href="/arb">NFL Props</a>
+          <a href="/arb">MLB Props</a>
+          <a href="/arb">NHL Props</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-legal">&copy; 2025 AlgoForAll ArbEdge. All rights reserved.</p>
+        <p class="footer-disclaimer">
+          AlgoForAll ArbEdge is intended for users 21+. Please gamble responsibly.
+          Sports betting may be illegal in your jurisdiction — check local laws before wagering.
+          Arbitrage opportunities close quickly; always verify odds before placing bets.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/script.js"></script>
+</body>
+</html>
