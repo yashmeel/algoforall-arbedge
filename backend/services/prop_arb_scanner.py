@@ -57,6 +57,8 @@ DEEP_LINKS: Dict[str, str] = {
     "espnbet":          "https://espnbet.com/",
     "fliff":            "https://www.getfliff.com/",
     "tipico_us":        "https://sports.tipico.com/en/all/sports",
+    # Prediction markets
+    "polymarket":       "https://polymarket.com/sports/nba",
 }
 
 PROP_TYPE_LABELS: Dict[str, str] = {
@@ -267,7 +269,10 @@ def scan_props_for_arbs(
             stake_amount  = round(over_stake, 2),
             stake_rounded = _round_to_5(over_stake),
             payout        = round(over_payout, 2),
-            deep_link     = DEEP_LINKS.get(over_book, f"https://www.google.com/search?q={best_over['bookmaker']}+sportsbook"),
+            deep_link     = (
+                best_over.get("_market_url")  # Polymarket per-market URL
+                or DEEP_LINKS.get(over_book, f"https://www.google.com/search?q={best_over['bookmaker']}+sportsbook")
+            ),
         )
         under_leg = PropArbLeg(
             side          = "Under",
@@ -278,7 +283,10 @@ def scan_props_for_arbs(
             stake_amount  = round(under_stake, 2),
             stake_rounded = _round_to_5(under_stake),
             payout        = round(under_payout, 2),
-            deep_link     = DEEP_LINKS.get(under_book, f"https://www.google.com/search?q={best_under['bookmaker']}+sportsbook"),
+            deep_link     = (
+                best_under.get("_market_url")  # Polymarket per-market URL
+                or DEEP_LINKS.get(under_book, f"https://www.google.com/search?q={best_under['bookmaker']}+sportsbook")
+            ),
         )
 
         # Use metadata from whichever row has it (prefer over_leg's row)

@@ -676,13 +676,19 @@
             <button class="book-chip active" data-book="fliff"          onclick="toggleBook(this)">Fliff</button>
           </div>
         </div>
-        <div class="book-group" style="margin-bottom:0">
+        <div class="book-group">
           <div class="book-group-label">🌊 Offshore (accepts US)</div>
           <div class="book-chips-row" id="chipsOffshore">
             <button class="book-chip" data-book="betonlineag" onclick="toggleBook(this)">BetOnline</button>
             <button class="book-chip" data-book="mybookieag"  onclick="toggleBook(this)">MyBookie</button>
             <button class="book-chip" data-book="bovada_us"   onclick="toggleBook(this)">Bovada</button>
             <button class="book-chip" data-book="betus"       onclick="toggleBook(this)">BetUS</button>
+          </div>
+        </div>
+        <div class="book-group" style="margin-bottom:0">
+          <div class="book-group-label">🔮 Prediction Markets</div>
+          <div class="book-chips-row" id="chipsPrediction">
+            <button class="book-chip active" data-book="polymarket" onclick="toggleBook(this)">Polymarket</button>
           </div>
         </div>
       </div>
@@ -970,14 +976,17 @@
     }
 
     function selectBookGroup(group) {
-      const usChips       = document.querySelectorAll("#chipsUS .book-chip");
-      const offshoreChips = document.querySelectorAll("#chipsOffshore .book-chip");
+      const usChips         = document.querySelectorAll("#chipsUS .book-chip");
+      const offshoreChips   = document.querySelectorAll("#chipsOffshore .book-chip");
+      const predictionChips = document.querySelectorAll("#chipsPrediction .book-chip");
       if (group === "us") {
         usChips.forEach(c => c.classList.add("active"));
         offshoreChips.forEach(c => c.classList.remove("active"));
+        predictionChips.forEach(c => c.classList.add("active")); // keep Polymarket ON
       } else if (group === "offshore") {
         usChips.forEach(c => c.classList.remove("active"));
         offshoreChips.forEach(c => c.classList.add("active"));
+        predictionChips.forEach(c => c.classList.remove("active"));
       } else if (group === "all") {
         document.querySelectorAll(".book-chip").forEach(c => c.classList.add("active"));
       } else if (group === "none") {

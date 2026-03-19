@@ -9,6 +9,7 @@ GET  /api/props/arb            — Return cached prop arb opportunities
 GET  /api/props/arb/latest     — Re-scan the cached raw rows (no new fetch)
 GET  /api/props/sports         — List prop-supported sports
 """
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone
@@ -24,6 +25,7 @@ from services.prop_fetcher import (
     fetch_props_on_demand,
     fetch_props_all_sports,
 )
+from services.polymarket_fetcher import fetch_polymarket_nba_props
 from services.prop_arb_scanner import (
     PropArbReport,
     scan_props_for_arbs,
@@ -58,18 +60,35 @@ def _save_rows_to_disk(rows: List[Dict[str, Any]]) -> None:
 
 
 async def _do_fetch(sport_key: str, max_events: int) -> None:
-    """Fetch props and populate module-level cache."""
+    """
+    Fetch props from The Odds API AND Polymarket concurrently.
+    Merges both into a single flat list so the arb scanner can compare
+    Polymarket prices against traditional sportsbook lines.
+    """
     global _cached_rows, _last_fetch, _last_remaining
 
-    rows, remaining = await fetch_props_on_demand(
-        sport_key=sport_key,
-        max_events=max_events,
+    # Run both fetches at the same time — Polymarket is free, no credits
+    odds_api_task     = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
+    polymarket_task   = fetch_polymarket_nba_props(min_liquidity=300.0)
+
+    (odds_rows, remaining), poly_rows = await asyncio.gather(
+        odds_api_task,
+        polymarket_task,
     )
-    if rows:
-        _cached_rows = rows
-        _last_remaining = remaining
-        _last_fetch = datetime.now(timezone.utc)
-        _save_rows_to_disk(rows)
+
+    logger.info(
+        f"Fetch complete — Odds API: {len(odds_rows)} rows, "
+        f"Polymarket: {len(poly_rows)} rows"
+    )
+
+    # Merge: Odds API rows first, then Polymarket rows
+    all_rows = list(odds_rows) + list(poly_rows)
+
+    if all_rows:
+        _cached_rows     = all_rows
+        _last_remaining  = remaining
+        _last_fetch      = datetime.now(timezone.utc)
+        _save_rows_to_disk(all_rows)
 
 
 # ── Response serialisation helpers ────────────────────────────────────────
