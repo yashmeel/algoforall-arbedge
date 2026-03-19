@@ -36,22 +36,13 @@ ESPN_HEADERS = {
 }
 
 # (sport_path, league_path, display_name)
+# NBA only — other sports removed to avoid stale data and save API credits
 SPORT_CONFIGS = [
-    ("basketball", "nba",  "NBA"),
-    ("football",   "nfl",  "NFL"),
-    ("baseball",   "mlb",  "MLB"),
-    ("hockey",     "nhl",  "NHL"),
-    ("basketball", "mens-college-basketball", "CBB"),
-    ("football",   "college-football",        "CFB"),
+    ("basketball", "nba", "NBA"),
 ]
 
 SUPPORTED_SPORTS = [
     "basketball_nba",
-    "americanfootball_nfl",
-    "baseball_mlb",
-    "icehockey_nhl",
-    "basketball_ncaab",
-    "americanfootball_ncaaf",
 ]
 
 MARKET_KEYS  = ["h2h", "spreads", "totals"]
@@ -385,8 +376,8 @@ async def fetch_all_odds(
 THE_ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 
 _ODDS_API_SPORTS = [
-    "americanfootball_nfl",
-    "americanfootball_ncaaf",
+    # "americanfootball_nfl",   # off-season — re-enable in Sep
+    # "americanfootball_ncaaf", # off-season — re-enable in Aug
     "basketball_nba",
     "basketball_ncaab",
     "baseball_mlb",

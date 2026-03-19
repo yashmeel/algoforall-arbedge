@@ -35,7 +35,7 @@ THE_ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 # These are the markets we request.  Only the ones the API actually has
 # will come back; the rest are silently omitted.
 PROP_MARKETS = [
-    # Basketball
+    # NBA basketball markets only
     "player_points",
     "player_rebounds",
     "player_assists",
@@ -43,26 +43,11 @@ PROP_MARKETS = [
     "player_blocks",
     "player_steals",
     "player_points_rebounds_assists",
-    # Baseball
-    "batter_home_runs",
-    "batter_hits",
-    "batter_rbis",
-    "pitcher_strikeouts",
-    # Football
-    "player_pass_yds",
-    "player_rush_yds",
-    "player_reception_yds",
-    "player_receptions",
-    "player_pass_tds",
-    "player_anytime_td",
 ]
 
-# Sports that have player props on The Odds API
+# NBA only — focused scope to avoid stale lines from off-season sports
 PROP_SPORTS = [
     "basketball_nba",
-    "americanfootball_nfl",
-    "baseball_mlb",
-    "icehockey_nhl",
 ]
 
 

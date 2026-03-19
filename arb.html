@@ -748,6 +748,7 @@
         lastData = data;
         renderArbs(data);
         updateSummary(data);
+        showAgeWarning(data.fetched_at, "arbList");
         setStatus("ok", `Last updated: ${formatTime(data.fetched_at)} · ${data.total_opportunities} opportunities`);
       } catch (err) {
         setStatus("error", `Error: ${err.message} — Is the backend running? (python3 main.py)`);
@@ -761,11 +762,15 @@
     function renderArbs(data) {
       const list = document.getElementById("arbList");
       if (!data.opportunities || data.opportunities.length === 0) {
+        const hasData = data.fetched_at && new Date(data.fetched_at).getFullYear() > 2000;
         list.innerHTML = `
           <div class="state-box">
             <div class="state-icon">🔍</div>
-            <h3>No arbitrage opportunities found</h3>
-            <p>Try lowering the minimum profit threshold or check back in a few seconds as odds move frequently.</p>
+            <h3>${hasData ? "No arbitrage opportunities found" : "No game data loaded yet"}</h3>
+            <p>${hasData
+              ? "No arbs found at current odds. Try lowering the minimum profit threshold."
+              : "Click <strong>Refresh</strong> to fetch live game odds. This uses API credits."
+            }</p>
           </div>`;
         return;
       }
@@ -898,6 +903,43 @@
       return new Date(isoStr).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
     }
 
+    // Returns age label + staleness level: "fresh" | "warn" | "stale"
+    function dataAge(isoStr) {
+      if (!isoStr) return { label: "unknown age", level: "stale" };
+      const secs = Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000);
+      if (secs < 0)   return { label: "just now",   level: "fresh" };
+      if (secs < 120) return { label: `${secs}s ago`, level: "fresh" };
+      const mins = Math.floor(secs / 60);
+      if (mins < 60)  return { label: `${mins}m ago`, level: mins < 15 ? "warn" : "stale" };
+      const hrs = Math.floor(mins / 60);
+      return { label: `${hrs}h ${mins % 60}m ago`, level: "stale" };
+    }
+
+    function showAgeWarning(isoStr, listId) {
+      const container = document.getElementById(listId);
+      if (!container) return;
+      const old = container.querySelector(".age-warning");
+      if (old) old.remove();
+
+      const { label, level } = dataAge(isoStr);
+      if (level === "fresh") return;
+
+      const div = document.createElement("div");
+      div.className = "age-warning";
+      div.style.cssText = [
+        "display:flex", "align-items:center", "gap:10px",
+        "padding:10px 16px", "margin:0 0 14px 0", "border-radius:8px",
+        "font-size:0.83rem", "font-weight:600",
+        `background:${level === "warn" ? "rgba(255,193,7,0.10)" : "rgba(239,83,80,0.10)"}`,
+        `border:1px solid ${level === "warn" ? "rgba(255,193,7,0.35)" : "rgba(239,83,80,0.35)"}`,
+        `color:${level === "warn" ? "#ffc107" : "#ef5350"}`
+      ].join(";");
+      div.innerHTML = `${level === "warn" ? "⚠️" : "🔴"}&nbsp;` +
+        `Data fetched <strong style="margin:0 3px">${label}</strong> — ` +
+        `verify each line before placing bets. Lines may have moved.`;
+      container.prepend(div);
+    }
+
     function formatSportKey(key) {
       const map = {
         "americanfootball_nfl": "NFL",
@@ -997,6 +1039,7 @@
 
         renderProps(scanData, bankroll);
         updatePropsSummary(scanData);
+        showAgeWarning(fetchData.fetched_at, "propsList");
         setPropStatus("ok",
           `Last fetch: ${fetchData.fetched_at ? formatTime(fetchData.fetched_at) : "just now"} · ` +
           `${scanData.total_found} arbs found from ${scanData.rows_scanned} rows`
@@ -1043,6 +1086,7 @@
 
         renderProps(data, bankroll);
         updatePropsSummary(data);
+        showAgeWarning(data.fetched_at, "propsList");
         setPropStatus("ok", `Re-scan complete: ${data.total_found} arbs from ${data.rows_scanned} rows`);
       } catch (err) {
         setPropStatus("error", `Error: ${err.message}`);

@@ -248,6 +248,7 @@ async def get_prop_arbs(
 async def rescan_latest(
     bankroll:   float          = Query(100.0, ge=1.0),
     min_profit: float          = Query(MIN_PROFIT_PCT, ge=0.0),
+    max_profit: float          = Query(MAX_PROFIT_PCT, le=100.0),
     books:      Optional[str]  = Query(None, description="Comma-separated bookmaker keys to include."),
 ):
     """
@@ -270,9 +271,13 @@ async def rescan_latest(
         return {"status": "empty", "message": "latest_props.json is empty", "total_found": 0}
 
     allowed_books = {b.strip() for b in books.split(",") if b.strip()} if books else None
-    report = scan_props_for_arbs(rows, bankroll=bankroll, min_profit=min_profit, allowed_books=allowed_books)
+    report = scan_props_for_arbs(rows, bankroll=bankroll, min_profit=min_profit, max_profit=max_profit, allowed_books=allowed_books)
     result = _report_to_dict(report, bankroll)
     result["source"] = str(PROPS_JSON_PATH)
+    # Expose file modification time so the UI can show a data-age warning
+    import os
+    mtime = os.path.getmtime(PROPS_JSON_PATH)
+    result["fetched_at"] = datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat()
     return result
 
 
