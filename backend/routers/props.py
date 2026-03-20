@@ -26,6 +26,7 @@ from services.prop_fetcher import (
     fetch_props_all_sports,
 )
 from services.polymarket_fetcher import fetch_polymarket_nba_props
+from services.kalshi_fetcher import fetch_kalshi_nba_props
 from services.prop_arb_scanner import (
     PropArbReport,
     scan_props_for_arbs,
@@ -62,16 +63,18 @@ def _save_rows_to_disk(rows: List[Dict[str, Any]]) -> None:
 
 async def _do_startup_polymarket_refresh() -> None:
     """
-    Called once on server startup. Fetches fresh Polymarket rows (free, no credits)
+    Called once on server startup. Fetches fresh Polymarket + Kalshi rows (free, no credits)
     and merges them with any existing Odds API rows in latest_props.json.
-    This ensures deployed servers (Render, etc.) always have live Polymarket data
-    even when The Odds API key has no remaining credits.
     """
     global _cached_rows, _last_fetch
 
-    poly_rows = await fetch_polymarket_nba_props(min_liquidity=0.0)
-    if not poly_rows:
-        logger.info("Startup Polymarket fetch returned 0 rows — using committed cache as-is")
+    poly_rows, kalshi_rows = await asyncio.gather(
+        fetch_polymarket_nba_props(min_liquidity=0.0),
+        fetch_kalshi_nba_props(min_open_interest=0.0),
+    )
+    prediction_rows = list(poly_rows) + list(kalshi_rows)
+    if not prediction_rows:
+        logger.info("Startup prediction market fetch returned 0 rows — using committed cache as-is")
         return
 
     # Load any existing Odds API rows from disk
@@ -80,17 +83,17 @@ async def _do_startup_polymarket_refresh() -> None:
         try:
             with open(PROPS_JSON_PATH) as f:
                 saved = json.load(f)
-            odds_rows = [r for r in saved if r.get("bookmaker_key") != "polymarket"]
+            odds_rows = [r for r in saved if r.get("bookmaker_key") not in ("polymarket", "kalshi")]
         except Exception:
             pass
 
-    all_rows = odds_rows + list(poly_rows)
+    all_rows = odds_rows + prediction_rows
     _cached_rows = all_rows
     _last_fetch  = datetime.now(timezone.utc)
     _save_rows_to_disk(all_rows)
     logger.info(
-        f"Startup refresh: {len(odds_rows)} Odds API rows + "
-        f"{len(poly_rows)} Polymarket rows = {len(all_rows)} total"
+        f"Startup refresh: {len(odds_rows)} Odds API + "
+        f"{len(poly_rows)} Polymarket + {len(kalshi_rows)} Kalshi = {len(all_rows)} total"
     )
 
 
@@ -106,38 +109,38 @@ async def _do_fetch(sport_key: str, max_events: int) -> None:
     """
     global _cached_rows, _last_fetch, _last_remaining
 
-    # Run both fetches at the same time — Polymarket is free, no credits
+    # Run all fetches concurrently — prediction markets are free
     odds_api_task   = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
     polymarket_task = fetch_polymarket_nba_props(min_liquidity=0.0)
+    kalshi_task     = fetch_kalshi_nba_props(min_open_interest=0.0)
 
-    (odds_rows, remaining), poly_rows = await asyncio.gather(
+    (odds_rows, remaining), poly_rows, kalshi_rows = await asyncio.gather(
         odds_api_task,
         polymarket_task,
+        kalshi_task,
     )
 
     logger.info(
         f"Fetch complete — Odds API: {len(odds_rows)} rows, "
-        f"Polymarket: {len(poly_rows)} rows"
+        f"Polymarket: {len(poly_rows)} rows, Kalshi: {len(kalshi_rows)} rows"
     )
 
-    # If Odds API failed (0 rows), rescue previous non-Polymarket rows from disk
+    # If Odds API failed (0 rows), rescue previous non-prediction rows from disk
     if len(odds_rows) == 0 and PROPS_JSON_PATH.exists():
         try:
             with open(PROPS_JSON_PATH) as f:
                 saved = json.load(f)
-            # Keep only non-Polymarket rows from the saved file
-            rescued = [r for r in saved if r.get("bookmaker_key") != "polymarket"]
+            rescued = [r for r in saved if r.get("bookmaker_key") not in ("polymarket", "kalshi")]
             if rescued:
                 logger.info(
-                    f"Odds API returned 0 rows — rescued {len(rescued)} "
-                    f"non-Polymarket rows from previous cache"
+                    f"Odds API returned 0 rows — rescued {len(rescued)} rows from cache"
                 )
                 odds_rows = rescued
         except Exception as exc:
             logger.warning(f"Could not rescue cache: {exc}")
 
-    # Merge: Odds API rows first, then fresh Polymarket rows
-    all_rows = list(odds_rows) + list(poly_rows)
+    # Merge: Odds API rows first, then prediction market rows
+    all_rows = list(odds_rows) + list(poly_rows) + list(kalshi_rows)
 
     if all_rows:
         _cached_rows    = all_rows

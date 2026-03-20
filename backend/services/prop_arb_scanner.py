@@ -38,8 +38,7 @@ MIN_PROFIT_PCT = 0.5    # discard anything below 0.5%
 MAX_PROFIT_PCT = 15.0   # discard anything above 15% (likely data error)
 
 # Books to include in arb scanning by default.
-# Only includes reputable regulated US books + Polymarket.
-# Offshore books (Bovada, BetOnline, BetRivers) excluded.
+# Regulated US books + prediction markets. Offshore excluded.
 ALLOWED_BOOKS = {
     "draftkings",
     "fanduel",
@@ -47,7 +46,9 @@ ALLOWED_BOOKS = {
     "espnbet",
     "hardrockbet",
     "ballybet",
+    "betrivers",
     "polymarket",
+    "kalshi",
 }
 
 # Sportsbook deep-link templates.
@@ -72,6 +73,7 @@ DEEP_LINKS: Dict[str, str] = {
     "tipico_us":        "https://sports.tipico.com/en/all/sports",
     # Prediction markets
     "polymarket":       "https://polymarket.com/sports/nba",
+    "kalshi":           "https://kalshi.com/sports/basketball",
 }
 
 PROP_TYPE_LABELS: Dict[str, str] = {
