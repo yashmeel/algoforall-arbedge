@@ -37,6 +37,19 @@ logger = logging.getLogger(__name__)
 MIN_PROFIT_PCT = 0.5    # discard anything below 0.5%
 MAX_PROFIT_PCT = 15.0   # discard anything above 15% (likely data error)
 
+# Books to include in arb scanning by default.
+# Only includes reputable regulated US books + Polymarket.
+# Offshore books (Bovada, BetOnline, BetRivers) excluded.
+ALLOWED_BOOKS = {
+    "draftkings",
+    "fanduel",
+    "betmgm",
+    "espnbet",
+    "hardrockbet",
+    "ballybet",
+    "polymarket",
+}
+
 # Sportsbook deep-link templates.
 # {event_id} and {player} are substituted where available.
 DEEP_LINKS: Dict[str, str] = {

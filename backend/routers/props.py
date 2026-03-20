@@ -31,6 +31,7 @@ from services.prop_arb_scanner import (
     scan_props_for_arbs,
     MIN_PROFIT_PCT,
     MAX_PROFIT_PCT,
+    ALLOWED_BOOKS,
 )
 
 logger = logging.getLogger(__name__)
@@ -288,7 +289,7 @@ async def get_prop_arbs(
     if sport_key:
         pass  # future: if multi-sport cache, filter here
 
-    allowed_books = {b.strip() for b in books.split(",") if b.strip()} if books else None
+    allowed_books = {b.strip() for b in books.split(",") if b.strip()} if books else ALLOWED_BOOKS
 
     report = scan_props_for_arbs(
         rows,
@@ -343,7 +344,7 @@ async def rescan_latest(
     if not rows:
         return {"status": "empty", "message": "latest_props.json is empty", "total_found": 0}
 
-    allowed_books = {b.strip() for b in books.split(",") if b.strip()} if books else None
+    allowed_books = {b.strip() for b in books.split(",") if b.strip()} if books else ALLOWED_BOOKS
     report = scan_props_for_arbs(rows, bankroll=bankroll, min_profit=min_profit, max_profit=max_profit, allowed_books=allowed_books)
     result = _report_to_dict(report, bankroll)
     result["source"] = str(PROPS_JSON_PATH)

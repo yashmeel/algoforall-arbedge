@@ -181,7 +181,7 @@ async def _fetch_event_props(
             f"{THE_ODDS_API_BASE}/sports/{sport_key}/events/{event_id}/odds",
             params={
                 "apiKey":      api_key,
-                "regions":     "us",
+                "regions":     "us,us2",
                 "markets":     target_markets,
                 "oddsFormat":  "american",
             },
