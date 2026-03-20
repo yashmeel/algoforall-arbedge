@@ -7,7 +7,7 @@ services:
     autoDeploy: true
     envVars:
       - key: ODDS_API_KEY
-        sync: false          # set this manually in Render dashboard
+        value: 7333149b3219b7cbdd02f36b5d3827c4
       - key: REDIS_URL
         value: ""
       - key: MIN_ARB_PROFIT
