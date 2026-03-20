@@ -59,6 +59,40 @@ def _save_rows_to_disk(rows: List[Dict[str, Any]]) -> None:
         logger.warning(f"Could not save props to disk: {e}")
 
 
+async def _do_startup_polymarket_refresh() -> None:
+    """
+    Called once on server startup. Fetches fresh Polymarket rows (free, no credits)
+    and merges them with any existing Odds API rows in latest_props.json.
+    This ensures deployed servers (Render, etc.) always have live Polymarket data
+    even when The Odds API key has no remaining credits.
+    """
+    global _cached_rows, _last_fetch
+
+    poly_rows = await fetch_polymarket_nba_props(min_liquidity=0.0)
+    if not poly_rows:
+        logger.info("Startup Polymarket fetch returned 0 rows — using committed cache as-is")
+        return
+
+    # Load any existing Odds API rows from disk
+    odds_rows: list = []
+    if PROPS_JSON_PATH.exists():
+        try:
+            with open(PROPS_JSON_PATH) as f:
+                saved = json.load(f)
+            odds_rows = [r for r in saved if r.get("bookmaker_key") != "polymarket"]
+        except Exception:
+            pass
+
+    all_rows = odds_rows + list(poly_rows)
+    _cached_rows = all_rows
+    _last_fetch  = datetime.now(timezone.utc)
+    _save_rows_to_disk(all_rows)
+    logger.info(
+        f"Startup refresh: {len(odds_rows)} Odds API rows + "
+        f"{len(poly_rows)} Polymarket rows = {len(all_rows)} total"
+    )
+
+
 async def _do_fetch(sport_key: str, max_events: int) -> None:
     """
     Fetch props from The Odds API AND Polymarket concurrently.
