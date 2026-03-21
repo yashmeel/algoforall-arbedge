@@ -668,6 +668,11 @@
       const gameTime = arb.commence_time ? new Date(arb.commence_time).toLocaleString("en-US",
         { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
 
+      // For game totals the player field IS the matchup — don't duplicate it
+      const metaMatchup = arb.prop_type === "game_total"
+        ? ""
+        : `${arb.away_team} @ ${arb.home_team} &nbsp;·&nbsp; `;
+
       const profitColour = arb.profit_pct >= 4 ? "var(--green)" : arb.profit_pct >= 2 ? "var(--yellow, #ffb300)" : "var(--green)";
 
       return `
@@ -677,7 +682,7 @@
               <div class="prop-arb-player">${idx}. ${arb.player}</div>
               <div class="prop-arb-meta">
                 <span class="prop-line-badge">${arb.prop_label} O/U ${arb.line}</span>
-                ${arb.away_team} @ ${arb.home_team} &nbsp;·&nbsp; ${gameTime}
+                ${metaMatchup}${gameTime}
               </div>
             </div>
             <div class="arb-profit-badge">

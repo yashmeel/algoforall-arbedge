@@ -77,6 +77,9 @@ DEEP_LINKS: Dict[str, str] = {
 }
 
 PROP_TYPE_LABELS: Dict[str, str] = {
+    # Game totals
+    "game_total":                      "Game Total",
+    # NBA / player props
     "player_points":                   "Points",
     "player_rebounds":                 "Rebounds",
     "player_assists":                  "Assists",
@@ -84,10 +87,12 @@ PROP_TYPE_LABELS: Dict[str, str] = {
     "player_blocks":                   "Blocks",
     "player_steals":                   "Steals",
     "player_points_rebounds_assists":  "Pts+Reb+Ast",
+    # MLB
     "batter_home_runs":                "Home Runs",
     "batter_hits":                     "Hits",
     "batter_rbis":                     "RBIs",
     "pitcher_strikeouts":              "Strikeouts",
+    # NFL
     "player_pass_yds":                 "Passing Yards",
     "player_rush_yds":                 "Rushing Yards",
     "player_reception_yds":            "Receiving Yards",

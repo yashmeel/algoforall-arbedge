@@ -27,6 +27,7 @@ from services.prop_fetcher import (
 )
 from services.polymarket_fetcher import fetch_polymarket_nba_props
 from services.kalshi_fetcher import fetch_kalshi_nba_props
+from services.game_totals_fetcher import fetch_game_totals
 from services.prop_arb_scanner import (
     PropArbReport,
     scan_props_for_arbs,
@@ -109,38 +110,45 @@ async def _do_fetch(sport_key: str, max_events: int) -> None:
     """
     global _cached_rows, _last_fetch, _last_remaining
 
-    # Run all fetches concurrently — prediction markets are free
+    # Run all fetches concurrently — prediction markets are free, game totals is 1 credit
     odds_api_task   = fetch_props_on_demand(sport_key=sport_key, max_events=max_events)
+    totals_task     = fetch_game_totals(sport_key=sport_key)
     polymarket_task = fetch_polymarket_nba_props(min_liquidity=0.0)
     kalshi_task     = fetch_kalshi_nba_props(min_open_interest=0.0)
 
-    (odds_rows, remaining), poly_rows, kalshi_rows = await asyncio.gather(
+    (odds_rows, remaining), (totals_rows, _), poly_rows, kalshi_rows = await asyncio.gather(
         odds_api_task,
+        totals_task,
         polymarket_task,
         kalshi_task,
     )
 
     logger.info(
-        f"Fetch complete — Odds API: {len(odds_rows)} rows, "
+        f"Fetch complete — Player props: {len(odds_rows)} rows, "
+        f"Game totals: {len(totals_rows)} rows, "
         f"Polymarket: {len(poly_rows)} rows, Kalshi: {len(kalshi_rows)} rows"
     )
 
-    # If Odds API failed (0 rows), rescue previous non-prediction rows from disk
+    # If player props failed (0 rows), rescue previous player-prop rows from disk
     if len(odds_rows) == 0 and PROPS_JSON_PATH.exists():
         try:
             with open(PROPS_JSON_PATH) as f:
                 saved = json.load(f)
-            rescued = [r for r in saved if r.get("bookmaker_key") not in ("polymarket", "kalshi")]
+            rescued = [
+                r for r in saved
+                if r.get("bookmaker_key") not in ("polymarket", "kalshi")
+                and r.get("prop_type") != "game_total"   # don't rescue stale totals
+            ]
             if rescued:
                 logger.info(
-                    f"Odds API returned 0 rows — rescued {len(rescued)} rows from cache"
+                    f"Player props returned 0 rows — rescued {len(rescued)} rows from cache"
                 )
                 odds_rows = rescued
         except Exception as exc:
             logger.warning(f"Could not rescue cache: {exc}")
 
-    # Merge: Odds API rows first, then prediction market rows
-    all_rows = list(odds_rows) + list(poly_rows) + list(kalshi_rows)
+    # Merge: player props + game totals + prediction markets
+    all_rows = list(odds_rows) + list(totals_rows) + list(poly_rows) + list(kalshi_rows)
 
     if all_rows:
         _cached_rows    = all_rows
