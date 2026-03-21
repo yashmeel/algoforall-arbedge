@@ -146,17 +146,7 @@
     }
     .prop-controls select:focus,
     .prop-controls input:focus { border-color: var(--blue); }
-    .prop-fetch-note {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      padding: 0.75rem 1rem;
-      background: rgba(66,165,245,0.07);
-      border: 1px solid rgba(66,165,245,0.2);
-      border-radius: 8px;
-      margin-bottom: 1.25rem;
-    }
-
-    .prop-arb-card {
+.prop-arb-card {
       background: var(--bg-2);
       border: 1px solid rgba(0,200,83,0.2);
       border-radius: 12px;
@@ -347,18 +337,13 @@
       <div>
         <h1>Arb <span>Scanner</span></h1>
         <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.25rem;">
-          NBA player prop arbitrage — Polymarket · Kalshi · US sportsbooks
+          Player props are simple Over/Under — exactly 2 outcomes, no ambiguity.
         </p>
       </div>
     </div>
 
     <!-- ═══════════════════ PLAYER PROPS ARB ═══════════════════ -->
     <div id="panelProps">
-
-      <div class="prop-fetch-note">
-        💾 <strong>Cache mode</strong> — <em>Scan Cached</em> re-uses the last fetched data (free, no credits).
-        Use <em>⚡ New Fetch</em> only when you need fresh odds — it costs API credits.
-      </div>
 
       <!-- Props controls -->
       <div class="prop-controls">
