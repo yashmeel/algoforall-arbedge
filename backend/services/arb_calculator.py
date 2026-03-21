@@ -49,6 +49,7 @@ def find_arb_in_market(
     game: GameOdds,
     market: MarketOdds,
     min_profit_pct: float = 0.5,
+    max_profit_pct: float = 15.0,
 ) -> Optional[ArbOpportunity]:
     """
     Check a single market for an arbitrage opportunity.
@@ -69,6 +70,14 @@ def find_arb_in_market(
     profit_pct = ((1.0 - total_implied) / total_implied) * 100
 
     if profit_pct < min_profit_pct:
+        return None
+
+    # Reject suspiciously high profits — almost always stale/dead lines, not real arbs
+    if profit_pct > max_profit_pct:
+        logger.debug(
+            f"SKIPPED (likely stale): {game.home_team} vs {game.away_team} "
+            f"[{market.market_label}] — {profit_pct:.1f}% exceeds max {max_profit_pct}%"
+        )
         return None
 
     # Calculate optimal stakes (for $100 total bankroll)
@@ -119,6 +128,7 @@ def find_arb_in_market(
 def scan_for_arbs(
     games: List[GameOdds],
     min_profit_pct: Optional[float] = None,
+    max_profit_pct: float = 15.0,
     sport_filter: Optional[List[str]] = None,
     market_filter: Optional[List[str]] = None,
 ) -> ArbSummary:
@@ -148,7 +158,7 @@ def scan_for_arbs(
             if market_filter and market.market_key not in market_filter:
                 continue
 
-            arb = find_arb_in_market(game, market, min_profit_pct=threshold)
+            arb = find_arb_in_market(game, market, min_profit_pct=threshold, max_profit_pct=max_profit_pct)
             if arb:
                 opportunities.append(arb)
                 logger.info(

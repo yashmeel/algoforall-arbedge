@@ -43,10 +43,10 @@ async def _refresh_odds() -> None:
 
 
 async def _get_games(force_refresh: bool = False) -> List[GameOdds]:
-    """Return cached games or fetch fresh ones."""
+    """Return cached games. Only fetches if force_refresh=True — never auto-fetches."""
     global _last_games
 
-    if force_refresh or not _last_games:
+    if force_refresh:
         await _refresh_odds()
 
     return _last_games
