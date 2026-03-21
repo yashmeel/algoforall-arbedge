@@ -232,30 +232,6 @@
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* ---- Tab switcher ---- */
-    .tab-bar {
-      display: flex;
-      gap: 0;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid var(--border);
-    }
-    .tab-btn {
-      padding: 0.7rem 1.5rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      background: none;
-      border: none;
-      border-bottom: 3px solid transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-family: inherit;
-      margin-bottom: -2px;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
 
     /* ---- Prop arb cards ---- */
     .prop-controls {
@@ -498,113 +474,13 @@
       <div>
         <h1>Arb <span>Scanner</span></h1>
         <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.25rem;">
-          Guaranteed-profit opportunities across 30+ sportsbooks
+          NBA player prop arbitrage — Polymarket · Kalshi · US sportsbooks
         </p>
       </div>
-      <!-- controls moved into tab panels below -->
-      <div class="arb-controls" id="gameArbControls">
-        <select id="sportFilter">
-          <option value="">All Sports</option>
-          <option value="americanfootball_nfl">NFL</option>
-          <option value="basketball_nba">NBA</option>
-          <option value="baseball_mlb">MLB</option>
-          <option value="icehockey_nhl">NHL</option>
-          <option value="americanfootball_ncaaf">CFB</option>
-          <option value="basketball_ncaab">CBB</option>
-          <option value="mma_mixed_martial_arts">MMA</option>
-          <option value="soccer_usa_mls">MLS</option>
-        </select>
-        <select id="marketFilter">
-          <option value="">All Markets</option>
-          <option value="h2h">Moneyline</option>
-          <option value="spreads">Spread</option>
-          <option value="totals">Total (O/U)</option>
-        </select>
-        <input
-          type="number"
-          id="minProfit"
-          placeholder="Min profit %"
-          min="0"
-          max="20"
-          step="0.1"
-          style="width: 120px"
-          value="0.5"
-        />
-        <button class="btn btn-green refresh-btn" id="refreshBtn" onclick="loadArbs(true)">
-          <svg id="refreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Refresh
-        </button>
-      </div>
     </div>
 
-    <!-- Tab switcher -->
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tabGame"  onclick="switchTab('game')">🏈 Game Arbs</button>
-      <button class="tab-btn"        id="tabProps" onclick="switchTab('props')">🏀 Player Props Arb</button>
-    </div>
-
-    <!-- ═══════════════════ GAME ARB TAB ═══════════════════ -->
-    <div class="tab-panel active" id="panelGame">
-
-    <!-- Summary Cards -->
-    <div class="arb-summary" id="arbSummary">
-      <div class="summary-card">
-        <div class="s-label">Live Arbs</div>
-        <div class="s-val green" id="statTotal">—</div>
-        <div class="s-sub">opportunities found</div>
-      </div>
-      <div class="summary-card">
-        <div class="s-label">Best Profit</div>
-        <div class="s-val green" id="statBest">—</div>
-        <div class="s-sub">guaranteed return</div>
-      </div>
-      <div class="summary-card">
-        <div class="s-label">Sports Covered</div>
-        <div class="s-val blue" id="statSports">—</div>
-        <div class="s-sub">with active arbs</div>
-      </div>
-      <div class="summary-card">
-        <div class="s-label">API Quota</div>
-        <div class="s-val" id="statQuota">—</div>
-        <div class="s-sub">requests remaining</div>
-      </div>
-    </div>
-
-    <!-- Status bar -->
-    <div class="status-bar">
-      <div class="status-dot" id="statusDot"></div>
-      <span id="statusText">Connecting to odds feed...</span>
-    </div>
-
-    <!-- Quick Calculator Panel -->
-    <div class="calc-panel">
-      <h3>&#9881; Quick Arb Calculator</h3>
-      <p style="font-size:0.82rem; color: var(--text-muted); margin-bottom:1rem;">Enter American odds for each leg to see if an arb exists and calculate optimal stakes.</p>
-      <div class="calc-inputs">
-        <div class="calc-field">
-          <label>Leg 1 Odds (American)</label>
-          <input type="number" id="calc1" placeholder="+150" />
-        </div>
-        <div class="calc-field">
-          <label>Leg 2 Odds (American)</label>
-          <input type="number" id="calc2" placeholder="-130" />
-        </div>
-        <div class="calc-field" style="max-width:130px">
-          <label>Bankroll ($)</label>
-          <input type="number" id="calcBankroll" placeholder="1000" value="1000" />
-        </div>
-        <button class="btn btn-primary" onclick="runCalculator()">Calculate</button>
-      </div>
-      <div class="calc-result" id="calcResult"></div>
-    </div>
-
-    <!-- Arb Opportunities List -->
-    <div id="arbList" class="arb-list"></div>
-
-    </div><!-- /panelGame -->
-
-    <!-- ═══════════════════ PLAYER PROPS TAB ═══════════════════ -->
-    <div class="tab-panel" id="panelProps">
+    <!-- ═══════════════════ PLAYER PROPS ARB ═══════════════════ -->
+    <div id="panelProps">
 
       <div class="prop-fetch-note">
         💾 <strong>Cache mode</strong> — <em>Scan Cached</em> re-uses the last fetched data (free, no credits).
@@ -963,15 +839,6 @@
       return map[key] || key;
     }
 
-    // ---- Tab switcher ----
-    function switchTab(name) {
-      document.getElementById("panelGame").classList.toggle("active", name === "game");
-      document.getElementById("panelProps").classList.toggle("active", name === "props");
-      document.getElementById("tabGame").classList.toggle("active", name === "game");
-      document.getElementById("tabProps").classList.toggle("active", name === "props");
-      document.getElementById("gameArbControls").style.display = name === "game" ? "" : "none";
-    }
-
     // ---- Book filter helpers ----
     function toggleBook(chip) {
       chip.classList.toggle("active");
@@ -1211,20 +1078,7 @@
       document.getElementById("propFetchBtn").disabled = on;
     }
 
-    // ---- Auto-refresh & event listeners ----
-    document.getElementById("sportFilter").addEventListener("change", () => loadArbs());
-    document.getElementById("marketFilter").addEventListener("change", () => loadArbs());
-    document.getElementById("minProfit").addEventListener("change", () => loadArbs());
-
-    // Add Enter key support for calculator
-    ["calc1","calc2","calcBankroll"].forEach(id => {
-      document.getElementById(id).addEventListener("keydown", e => {
-        if (e.key === "Enter") runCalculator();
-      });
-    });
-
     // Initial load — use cached data only, no API credits spent
-    loadArbs();
     rescanPropsFromCache();
   </script>
 </body>
